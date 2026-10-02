@@ -69,7 +69,8 @@ If the email has no Beeper account yet, add `--username <name> --yes` to
 ### MCP endpoint (bearer)
 
 When `GET /v1/info` reports `mcp_enabled: true`, Beeper Server serves MCP at
-`http://127.0.0.1:23373/v0/mcp` (same path as Desktop). Pass the target access
+`/v0/mcp` on the selected target's actual base URL (shown by `beeper auth status`).
+Managed Server targets may use a port other than Desktop's default 23373. Pass the target access
 token as `Authorization: Bearer …` (`~/.beeper/targets/` or
 `BEEPER_ACCESS_TOKEN`). Browser OAuth for MCP clients needs Desktop; on Server
 use the bearer header. See the [MCP (agents)](../../../README.md#mcp-agents)
