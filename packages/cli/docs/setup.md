@@ -66,6 +66,16 @@ beeper verify recovery-key -t server --key "$BEEPER_RECOVERY_KEY" --json
 If the email has no Beeper account yet, add `--username <name> --yes` to
 `auth email response` to create one and accept the terms.
 
+### MCP endpoint (bearer)
+
+When `GET /v1/info` reports `mcp_enabled: true`, Beeper Server serves MCP at
+`http://127.0.0.1:23373/v0/mcp` (same path as Desktop). Pass the target access
+token as `Authorization: Bearer …` (`~/.beeper/targets/` or
+`BEEPER_ACCESS_TOKEN`). Browser OAuth for MCP clients needs Desktop; on Server
+use the bearer header. See the [MCP (agents)](../../../README.md#mcp-agents)
+section in the repo README for a `claude mcp add` example. A `beeper mcp`
+helper is tracked in [#10](https://github.com/beeper/cli/pull/10).
+
 ## Examples
 
 ```sh
