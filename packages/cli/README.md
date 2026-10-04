@@ -2085,12 +2085,13 @@ Flags:
 
 | Flag | Type | Description |
 | --- | --- | --- |
+| `--account=<value>` | option | Account selector; when set, resolve or start a direct chat for --to on this account |
 | `--mention=<value>...` | option | User ID to @-mention (repeatable) |
 | `--message=<value>` | option | Message text to send Required. |
 | `--no-preview` | boolean | Disable automatic link preview for URLs in the message |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reply-to=<value>` | option | Send as a reply to this message ID |
-| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
+| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
 | `--wait` | boolean | Wait for the message to leave the pending state (or fail) before returning |
 | `--wait-timeout=<value>` | option | Maximum wait time in ms when --wait is set Default: 30000 |
 
@@ -2117,13 +2118,14 @@ Flags:
 
 | Flag | Type | Description |
 | --- | --- | --- |
+| `--account=<value>` | option | Account selector; when set, resolve or start a direct chat for --to on this account |
 | `--caption=<value>` | option | Optional caption to send alongside the file |
 | `--file=<value>` | option | Local file path to upload (max 500 MB) Required. |
 | `--filename=<value>` | option | Override the displayed filename |
 | `--mime=<value>` | option | Override MIME type detection |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reply-to=<value>` | option | Send as a reply to this message ID |
-| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
+| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
 | `--wait` | boolean | Wait for the message to leave the pending state (or fail) before returning |
 | `--wait-timeout=<value>` | option | Maximum wait time in ms when --wait is set Default: 30000 |
 
@@ -2149,7 +2151,7 @@ Flags:
 | `--id=<value>` | option | Message ID to react to Required. |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reaction=<value>` | option | Reaction key (emoji, shortcode, or custom emoji key) Required. |
-| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
+| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
 | `--transaction=<value>` | option | Optional transaction ID for deduplication |
 
 Examples:
@@ -2173,12 +2175,13 @@ Flags:
 
 | Flag | Type | Description |
 | --- | --- | --- |
+| `--account=<value>` | option | Account selector; when set, resolve or start a direct chat for --to on this account |
 | `--file=<value>` | option | Sticker file (typically 512x512 WebP) Required. |
 | `--filename=<value>` | option | Override the displayed filename |
 | `--mime=<value>` | option | MIME type for the sticker (default: image/webp) Default: image/webp |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reply-to=<value>` | option | Send as a reply to this message ID |
-| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
+| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
 | `--wait` | boolean | Wait for the message to leave the pending state (or fail) before returning |
 | `--wait-timeout=<value>` | option | Maximum wait time in ms when --wait is set Default: 30000 |
 
@@ -2204,7 +2207,7 @@ Flags:
 | `--id=<value>` | option | Message ID whose reaction to remove Required. |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reaction=<value>` | option | Reaction key to remove (emoji, shortcode, or custom emoji key) Required. |
-| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
+| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
 | `--transaction=<value>` | option | Optional transaction ID for deduplication |
 
 Examples:
@@ -2228,13 +2231,14 @@ Flags:
 
 | Flag | Type | Description |
 | --- | --- | --- |
+| `--account=<value>` | option | Account selector; when set, resolve or start a direct chat for --to on this account |
 | `--duration=<value>` | option | Voice note duration in seconds (overrides upload-detected duration) |
 | `--file=<value>` | option | Voice note audio file (OGG/Opus recommended) Required. |
 | `--filename=<value>` | option | Override the displayed filename |
 | `--mime=<value>` | option | MIME type for the voice note (default: audio/ogg) Default: audio/ogg |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reply-to=<value>` | option | Send as a reply to this message ID |
-| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
+| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
 | `--wait` | boolean | Wait for the message to leave the pending state (or fail) before returning |
 | `--wait-timeout=<value>` | option | Maximum wait time in ms when --wait is set Default: 30000 |
 
@@ -2487,6 +2491,12 @@ beeper doctor
 ```
 
 Active reachability check plus readiness diagnostics. Exits non-zero when the target is not ready. For a cheap snapshot use `beeper status`.
+
+Flags:
+
+| Flag | Type | Description |
+| --- | --- | --- |
+| `--network=<imessage>` | option | Run network-specific diagnostics (currently: imessage) |
 
 Examples:
 
