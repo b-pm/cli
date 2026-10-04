@@ -2099,6 +2099,7 @@ Examples:
 
 ```sh
 beeper send text --to 10313 --message "on my way"
+beeper send text --account iMessage --to +15551234567 --message "checking in"
 beeper send text --to 8951 --message "hi"
 beeper send text --to "Family" --message "hi" --pick 1
 ```
@@ -2133,6 +2134,7 @@ Examples:
 
 ```sh
 beeper send file --to 8951 --file ./photo.jpg --caption "from today"
+beeper send file --account iMessage --to +15551234567 --file ./proposal.pdf
 ```
 
 Global flags: `--base-url`, `--target`, `--debug`, `--events`, `--full`, `--json`, `--quiet`, `--read-only`, `--timeout`, `--yes`.
@@ -2502,6 +2504,7 @@ Examples:
 
 ```sh
 beeper doctor
+beeper doctor --network imessage
 beeper doctor --json
 ```
 
