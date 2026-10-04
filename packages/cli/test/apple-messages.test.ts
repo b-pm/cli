@@ -1,0 +1,107 @@
+import { describe, expect, it } from 'bun:test'
+import { diagnoseAppleMessages } from '../src/lib/apple-messages.js'
+
+const chat = {
+  id: 'imsg##thread:abc',
+  accountID: 'imessage_deadbeef',
+  network: 'iMessage',
+  title: '+1 555 000 1234',
+  type: 'single',
+}
+
+function pages<T>(items: T[]) {
+  return async function* () {
+    for (const item of items) yield item
+  }()
+}
+
+describe('diagnoseAppleMessages', () => {
+  it('discovers iMessage from chats when accounts API omits the native account', async () => {
+    let listCalls = 0
+    const client = {
+      accounts: { list: async () => ({ items: [] }) },
+      chats: {
+        search: () => pages([chat]),
+        list: () => pages([]),
+      },
+      messages: {
+        list: async (_chatID: string, params: { cursor?: string; direction?: string }) => {
+          listCalls += 1
+          if (!params.cursor) {
+            return {
+              items: Array.from({ length: 20 }, (_, i) => ({ id: `m-${i}` })),
+              hasMore: true,
+              oldestCursor: '1712000000000',
+            }
+          }
+          expect(params).toEqual({ cursor: '1712000000000', direction: 'before' })
+          return { items: [], hasMore: false, oldestCursor: null }
+        },
+      },
+    }
+
+    const result = await diagnoseAppleMessages(client)
+
+    expect(result.connected).toBe(true)
+    expect(result.discovery).toBe('chats')
+    expect(result.accountIDs).toEqual(['imessage_deadbeef'])
+    expect(result.contactResolution.rawPhoneTitles).toBe(1)
+    expect(result.historyPagination.state).toBe('broken')
+    expect(listCalls).toBe(2)
+    expect(result.actions.join(' ')).toMatch(/accounts API/)
+    expect(result.actions.join(' ')).toMatch(/empty older-history page/)
+  })
+
+  it('reports healthy pagination when the second page contains messages', async () => {
+    const resolvedChat = { ...chat, title: 'Jane Smith' }
+    const client = {
+      accounts: {
+        list: async () => ({ items: [{ accountID: 'imessage_deadbeef', network: 'iMessage' }] }),
+      },
+      chats: {
+        search: () => pages([resolvedChat]),
+        list: () => pages([]),
+      },
+      messages: {
+        list: async (_chatID: string, params: { cursor?: string }) => params.cursor
+          ? { items: [{ id: 'older' }], hasMore: false, oldestCursor: null }
+          : { items: [{ id: 'newer' }], hasMore: true, oldestCursor: 'cursor-1' },
+      },
+    }
+
+    const result = await diagnoseAppleMessages(client)
+
+    expect(result.discovery).toBe('accounts+chats')
+    expect(result.contactResolution.resolvedTitles).toBe(1)
+    expect(result.contactResolution.rawPhoneTitles).toBe(0)
+    expect(result.historyPagination).toEqual({
+      state: 'ok',
+      firstPageItems: 1,
+      secondPageItems: 1,
+    })
+  })
+
+  it('does not call pagination when no Apple Messages chat is discoverable', async () => {
+    let messageCalls = 0
+    const client = {
+      accounts: { list: async () => ({ items: [] }) },
+      chats: {
+        search: () => pages([]),
+        list: () => pages([]),
+      },
+      messages: {
+        list: async () => {
+          messageCalls += 1
+          return { items: [] }
+        },
+      },
+    }
+
+    const result = await diagnoseAppleMessages(client)
+
+    expect(result.connected).toBe(false)
+    expect(result.discovery).toBe('none')
+    expect(result.historyPagination.state).toBe('unknown')
+    expect(messageCalls).toBe(0)
+  })
+})
