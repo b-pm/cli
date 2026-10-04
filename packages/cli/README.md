@@ -364,6 +364,7 @@ First-party optional plugins:
 | `accounts show` | Show account details |
 | `accounts remove` | Remove an account |
 | `accounts use` | Select a default account for account-scoped commands |
+| `labels list` | List chat labels |
 | `chats list` | List chats |
 | `chats search` | Search chats |
 | `chats show` | Show chat details |
@@ -1344,6 +1345,30 @@ beeper accounts use whatsapp-main
 
 Global flags: `--base-url`, `--target`, `--debug`, `--events`, `--full`, `--json`, `--quiet`, `--read-only`, `--timeout`, `--yes`.
 
+### `beeper labels list`
+List chat labels
+
+```sh
+beeper labels list
+```
+
+List user-created labels that can be used to filter chat search.
+
+Flags:
+
+| Flag | Type | Description |
+| --- | --- | --- |
+| `--ids` | boolean | Print only label IDs |
+
+Examples:
+
+```sh
+beeper labels list
+beeper labels list --json
+```
+
+Global flags: `--base-url`, `--target`, `--debug`, `--events`, `--full`, `--json`, `--quiet`, `--read-only`, `--timeout`, `--yes`.
+
 ### `beeper chats list`
 List chats
 
@@ -1378,14 +1403,14 @@ Global flags: `--base-url`, `--target`, `--debug`, `--events`, `--full`, `--json
 Search chats
 
 ```sh
-beeper chats search <query>
+beeper chats search [query]
 ```
 
 Arguments:
 
 | Name | Required | Description |
 | --- | --- | --- |
-| `query` | yes | Search query (title, participant, or network) |
+| `query` | no | Optional search query (title, participant, or network) |
 
 Flags:
 
@@ -1393,12 +1418,16 @@ Flags:
 | --- | --- | --- |
 | `--account=<value>...` | option | Limit to Account ID, network, bridge, or account user |
 | `--ids` | boolean | Print preferred chat selectors, using numeric local chat IDs when available |
+| `--label=<value>` | option | Limit to a label name or ID |
 | `--limit=<value>` | option | Maximum chats to print Default: 20 |
+| `--unread` | boolean | Only chats with unread messages |
 
 Examples:
 
 ```sh
 beeper chats search Family
+beeper chats search --label Work --unread
+beeper chats search invoice --label Customers
 ```
 
 Global flags: `--base-url`, `--target`, `--debug`, `--events`, `--full`, `--json`, `--quiet`, `--read-only`, `--timeout`, `--yes`.
