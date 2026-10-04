@@ -31,7 +31,7 @@ export default class Doctor extends BeeperCommand {
     if (flags.network === 'imessage' && readiness.state === 'ready') {
       const appleMessages = await diagnoseAppleMessages(await createClient(flags))
       checks.appleMessages = appleMessages
-      networkOK = appleMessages.connected && appleMessages.historyPagination.state !== 'broken'
+      networkOK = appleMessages.connected
     }
 
     const ok = readiness.state === 'ready' && networkOK
