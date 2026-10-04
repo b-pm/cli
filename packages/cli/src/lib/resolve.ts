@@ -28,7 +28,11 @@ export async function resolveAccountIDs(
   }
   if (!effectiveInputs?.length) return undefined
 
-  const accounts = await listAccountsIncludingNative(client)
+  const response = await client.accounts.list()
+  let accounts = accountItems(response)
+  const needsNativeFallback = effectiveInputs.some(input => matchAccounts(accounts, input).length === 0)
+  if (needsNativeFallback) accounts = await listAccountsIncludingNative(client)
+
   const resolved: string[] = []
   for (const input of effectiveInputs) {
     const matches = matchAccounts(accounts, input)
@@ -108,6 +112,11 @@ async function suggestChat(client: any, input: string, options: ChatResolutionOp
   return chatInputID(top.value)
 }
 
+
+function accountItems(accounts: unknown): AnyRecord[] {
+  if (Array.isArray(accounts)) return accounts as AnyRecord[]
+  return ((accounts as { items?: AnyRecord[] }).items ?? [])
+}
 
 function matchAccounts(accounts: AnyRecord[], input: string): AnyRecord[] {
   const normalizedInput = normalize(input)
