@@ -2,8 +2,7 @@ import { Flags } from '@oclif/core'
 import { BeeperCommand, ensureWritable } from '../../lib/command.js'
 import { createClient } from '../../lib/client.js'
 import { printData } from '../../lib/output.js'
-import { resolveChatID } from '../../lib/resolve.js'
-import { sendMessage } from '../../lib/send-message.js'
+import { resolveSendChatID, sendMessage } from '../../lib/send-message.js'
 
 export default class SendText extends BeeperCommand {
   static override summary = 'Send a text message'
@@ -14,7 +13,8 @@ export default class SendText extends BeeperCommand {
     'beeper send text --to alice@whatsapp --message "Got it" --reply-to <msgID>',
   ]
   static override flags = {
-    to: Flags.string({ required: true, description: 'Chat selector (ID, local ID, title, or search text)' }),
+    to: Flags.string({ required: true, description: 'Chat selector, or recipient phone/email/name when --account is used' }),
+    account: Flags.string({ description: 'Account selector; when set, resolve or start a direct chat for --to on this account' }),
     message: Flags.string({ required: true, description: 'Message text to send' }),
     pick: Flags.integer({ description: 'Pick the Nth result when the selector is ambiguous (1-indexed)' }),
     'reply-to': Flags.string({ description: 'Send as a reply to this message ID' }),
@@ -27,7 +27,7 @@ export default class SendText extends BeeperCommand {
     const { flags } = await this.parse(SendText)
     ensureWritable(flags)
     const client = await createClient(flags)
-    const chatID = await resolveChatID(client, flags.to, { pick: flags.pick })
+    const chatID = await resolveSendChatID(client, { to: flags.to, pick: flags.pick, account: flags.account })
     await printData(await sendMessage(client, { chatID, text: flags.message, replyTo: flags['reply-to'], mentions: flags.mention, noPreview: flags['no-preview'], wait: flags.wait, waitTimeoutMs: flags['wait-timeout'] }), flags.json ? 'json' : 'human')
   }
 }
