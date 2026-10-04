@@ -1,4 +1,5 @@
 import { createReadStream } from 'node:fs'
+import { resolveAccountID, resolveChatID, userQueryFromInput } from './resolve.js'
 import { waitForMessage } from './wait.js'
 
 export type AttachmentType = 'sticker' | 'voice-note'
@@ -9,6 +10,23 @@ export type SendMessageResult = {
   pendingMessageID?: string
   message?: unknown
   hint?: string
+}
+
+export async function resolveSendChatID(client: any, options: {
+  to: string
+  pick?: number
+  account?: string
+}): Promise<string> {
+  if (!options.account) return resolveChatID(client, options.to, { pick: options.pick })
+
+  const accountID = await resolveAccountID(client, options.account)
+  const chat = await client.chats.start({
+    accountID,
+    user: userQueryFromInput(options.to),
+  })
+  const chatID = chat?.localChatID ?? chat?.id ?? chat?.chatID
+  if (!chatID) throw new Error('Starting the direct chat did not return a chat ID')
+  return String(chatID)
 }
 
 export async function sendMessage(client: any, options: {
