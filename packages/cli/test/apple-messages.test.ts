@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { diagnoseAppleMessages } from '../src/lib/apple-messages.js'
+import { diagnoseAppleMessages, listAccountsIncludingNative } from '../src/lib/apple-messages.js'
+import { resolveAccountID } from '../src/lib/resolve.js'
 
 const chat = {
   id: 'imsg##thread:abc',
@@ -103,5 +104,44 @@ describe('diagnoseAppleMessages', () => {
     expect(result.discovery).toBe('none')
     expect(result.historyPagination.state).toBe('unknown')
     expect(messageCalls).toBe(0)
+  })
+})
+
+describe('native iMessage account discovery', () => {
+  it('supplements accounts with the native account inferred from iMessage chats', async () => {
+    const client = {
+      accounts: {
+        list: async () => ({ items: [{ accountID: 'whatsapp_1', network: 'WhatsApp' }] }),
+      },
+      chats: {
+        search: () => pages([chat]),
+        list: () => pages([]),
+      },
+    }
+
+    const rows = await listAccountsIncludingNative(client)
+    expect(rows).toEqual([
+      { accountID: 'whatsapp_1', network: 'WhatsApp' },
+      {
+        accountID: 'imessage_deadbeef',
+        network: 'iMessage',
+        native: true,
+        inferredFrom: 'chats',
+      },
+    ])
+  })
+
+  it('lets account selectors resolve the inferred iMessage account', async () => {
+    const client = {
+      accounts: {
+        list: async () => ({ items: [{ accountID: 'whatsapp_1', network: 'WhatsApp' }] }),
+      },
+      chats: {
+        search: () => pages([chat]),
+        list: () => pages([]),
+      },
+    }
+
+    await expect(resolveAccountID(client, 'iMessage')).resolves.toBe('imessage_deadbeef')
   })
 })
