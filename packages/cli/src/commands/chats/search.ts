@@ -1,6 +1,7 @@
 import { Args, Flags } from '@oclif/core'
 import { BeeperCommand } from '../../lib/command.js'
 import { createClient } from '../../lib/client.js'
+import { usageError } from '../../lib/errors.js'
 import { resolveLabelID } from '../../lib/labels.js'
 import { collectPage, printIDs, printList } from '../../lib/output.js'
 import { resolveAccountIDs } from '../../lib/resolve.js'
@@ -19,7 +20,7 @@ export default class ChatsSearch extends BeeperCommand {
     const { args, flags } = await this.parse(ChatsSearch)
     const client = await createClient(flags)
     if (!args.query && !flags.label && !flags.unread) {
-      throw new Error('Provide a search query or at least one filter (--label or --unread).')
+      throw usageError('Provide a search query or at least one filter (--label or --unread).')
     }
     const accountIDs = await resolveAccountIDs(client, flags.account, { allowMultiplePerInput: true })
     const labelID = flags.label ? await resolveLabelID(client, flags.label) : undefined
