@@ -49,7 +49,7 @@ export async function resolveAccountID(client: any, input: string): Promise<stri
 }
 
 export async function listAccountIDs(client: any): Promise<string[]> {
-  const accounts = accountItems(await client.accounts.list())
+  const accounts = await listAccountsIncludingNative(client)
   return accounts.map(account => String(account.accountID)).filter(Boolean)
 }
 
@@ -108,10 +108,6 @@ async function suggestChat(client: any, input: string, options: ChatResolutionOp
   return chatInputID(top.value)
 }
 
-function accountItems(accounts: unknown): AnyRecord[] {
-  if (Array.isArray(accounts)) return accounts as AnyRecord[]
-  return ((accounts as { items?: AnyRecord[] }).items ?? [])
-}
 
 function matchAccounts(accounts: AnyRecord[], input: string): AnyRecord[] {
   const normalizedInput = normalize(input)
