@@ -2153,7 +2153,7 @@ Flags:
 | `--id=<value>` | option | Message ID to react to Required. |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reaction=<value>` | option | Reaction key (emoji, shortcode, or custom emoji key) Required. |
-| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
+| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
 | `--transaction=<value>` | option | Optional transaction ID for deduplication |
 
 Examples:
@@ -2209,7 +2209,7 @@ Flags:
 | `--id=<value>` | option | Message ID whose reaction to remove Required. |
 | `--pick=<value>` | option | Pick the Nth result when the selector is ambiguous (1-indexed) |
 | `--reaction=<value>` | option | Reaction key to remove (emoji, shortcode, or custom emoji key) Required. |
-| `--to=<value>` | option | Chat selector, or recipient phone/email/name when --account is used Required. |
+| `--to=<value>` | option | Chat selector (ID, local ID, title, or search text) Required. |
 | `--transaction=<value>` | option | Optional transaction ID for deduplication |
 
 Examples:
