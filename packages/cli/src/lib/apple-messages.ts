@@ -21,6 +21,26 @@ export type AppleMessagesDiagnostics = {
 
 type AnyRecord = Record<string, any>
 
+export async function listAccountsIncludingNative(client: any): Promise<AnyRecord[]> {
+  const rows = await listAccounts(client)
+  if (rows.some(isAppleAccount)) return rows
+
+  const chats = await findAppleChats(client)
+  const inferred = new Map<string, AnyRecord>()
+  for (const chat of chats) {
+    const id = accountID(chat)
+    if (!id || inferred.has(id)) continue
+    inferred.set(id, {
+      accountID: id,
+      network: 'iMessage',
+      native: true,
+      inferredFrom: 'chats',
+    })
+  }
+
+  return [...rows, ...inferred.values()]
+}
+
 export async function diagnoseAppleMessages(client: any): Promise<AppleMessagesDiagnostics> {
   const accountRows = await listAccounts(client)
   const accountIDsFromAccounts = new Set(
