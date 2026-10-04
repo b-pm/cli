@@ -9,6 +9,7 @@ export default class SendText extends BeeperCommand {
   static override description = 'Returns when Desktop accepts the send request. Pass `--wait` to wait until the message leaves the pending state or fails.'
   static override examples = [
     'beeper send text --to 10313 --message "On my way"',
+    'beeper send text --account iMessage --to +15551234567 --message "Checking in"',
     'beeper send text --to 8951 --message "See @alice" --mention alice@whatsapp',
     'beeper send text --to alice@whatsapp --message "Got it" --reply-to <msgID>',
   ]
