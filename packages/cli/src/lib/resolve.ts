@@ -1,4 +1,5 @@
 import { readConfig } from './targets.js'
+import { listAccountsIncludingNative } from './apple-messages.js'
 import { ambiguous, notFound } from './errors.js'
 import { confirmSuggestion, declineWithExit127, rankSuggestions } from './did-you-mean.js'
 
@@ -27,7 +28,7 @@ export async function resolveAccountIDs(
   }
   if (!effectiveInputs?.length) return undefined
 
-  const accounts = accountItems(await client.accounts.list())
+  const accounts = await listAccountsIncludingNative(client)
   const resolved: string[] = []
   for (const input of effectiveInputs) {
     const matches = matchAccounts(accounts, input)
