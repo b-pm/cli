@@ -8,10 +8,12 @@ export type DataIntegrityDiagnostic = {
     messages: number | null
     bridges: number | null
     bridgeLogins: number | null
+    bridgeActiveAccounts: number | null
   }
   accountIDs: {
     accounts: string[]
     chats: string[]
+    bridgeAccounts: string[]
     bridgeLogins: string[]
     missingFromAccounts: string[]
   }
@@ -32,12 +34,22 @@ export async function diagnoseDataIntegrity(client: any): Promise<DataIntegrityD
 
   const accountIDs = new Set((accounts ?? []).map(accountID).filter(Boolean))
   const chatAccountIDs = new Set((chats ?? []).map(accountID).filter(Boolean))
+  const bridgeAccountIDs = new Set<string>()
   const bridgeLoginAccountIDs = new Set<string>()
   let bridgeLoginCount: number | null = 0
+  let bridgeActiveAccountCount: number | null = bridges ? 0 : null
 
   if (bridges) {
     for (const bridge of bridges) {
       const bridgeID = String(bridge?.id ?? '')
+      for (const account of bridge?.accounts ?? []) {
+        const id = accountID(account)
+        if (id) bridgeAccountIDs.add(id)
+      }
+      if (bridgeActiveAccountCount !== null) {
+        const active = Number(bridge?.activeAccountCount ?? 0)
+        if (Number.isFinite(active) && active > 0) bridgeActiveAccountCount += active
+      }
       if (!bridgeID) continue
       try {
         const response = await client.bridges.logins.list(bridgeID)
@@ -59,13 +71,19 @@ export async function diagnoseDataIntegrity(client: any): Promise<DataIntegrityD
 
   const missingFromAccounts = Array.from(
     new Set(
-      [...chatAccountIDs, ...bridgeLoginAccountIDs].filter(id => !accountIDs.has(id)),
+      [...chatAccountIDs, ...bridgeAccountIDs, ...bridgeLoginAccountIDs].filter(id => !accountIDs.has(id)),
     ),
   )
 
   if (missingFromAccounts.length) {
     signals.push(
       `Account discovery drift: ${missingFromAccounts.length} account ID(s) appear in chats or bridge logins but not in /v1/accounts.`,
+    )
+  }
+
+  if ((bridgeActiveAccountCount ?? 0) > 0 && bridgeAccountIDs.size === 0 && bridgeLoginAccountIDs.size === 0) {
+    signals.push(
+      'Bridge state reports active accounts but exposes no account IDs through bridge accounts or bridge logins.',
     )
   }
 
@@ -99,10 +117,12 @@ export async function diagnoseDataIntegrity(client: any): Promise<DataIntegrityD
       messages: messages?.length ?? null,
       bridges: bridges?.length ?? null,
       bridgeLogins: bridgeLoginCount,
+      bridgeActiveAccounts: bridgeActiveAccountCount,
     },
     accountIDs: {
       accounts: Array.from(accountIDs),
       chats: Array.from(chatAccountIDs),
+      bridgeAccounts: Array.from(bridgeAccountIDs),
       bridgeLogins: Array.from(bridgeLoginAccountIDs),
       missingFromAccounts,
     },
