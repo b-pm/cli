@@ -42,7 +42,7 @@ export async function diagnoseDataIntegrity(client: any): Promise<DataIntegrityD
       try {
         const response = await client.bridges.logins.list(bridgeID)
         const logins = Array.isArray(response) ? response : (response?.items ?? [])
-        bridgeLoginCount += logins.length
+        if (bridgeLoginCount !== null) bridgeLoginCount += logins.length
         for (const login of logins) {
           for (const id of login?.accountIDs ?? []) {
             if (id) bridgeLoginAccountIDs.add(String(id))
