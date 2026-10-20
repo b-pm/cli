@@ -33,7 +33,9 @@ export async function checkAccessToken(
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 2_000)
 
   try {
-    const response = await fetcher(new URL('/v1/app/setup', baseURL), {
+    // /v1/app/setup is public and may return 200 during needs-login; accounts is bearer-protected.
+    // We only inspect the status code, never log or retain the response body.
+    const response = await fetcher(new URL('/v1/accounts', baseURL), {
       headers: { authorization: `Bearer ${token}` },
       signal: controller.signal,
     })
