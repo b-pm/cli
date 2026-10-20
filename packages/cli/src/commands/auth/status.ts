@@ -1,6 +1,6 @@
 import { Flags } from '@oclif/core'
 import { BeeperCommand } from '../../lib/command.js'
-import { checkAccessToken } from '../../lib/auth-health.js'
+import { checkAccessToken, parseTimeoutMs } from '../../lib/auth-health.js'
 import { resolveTarget } from '../../lib/targets.js'
 import { printData } from '../../lib/output.js'
 
@@ -23,7 +23,7 @@ export default class AuthStatus extends BeeperCommand {
       clientID: target.auth?.clientID,
       expiresAt: target.auth?.expiresAt,
       scope: target.auth?.scope,
-      ...(flags.check ? { check: await checkAccessToken(target.baseURL, token) } : {}),
+      ...(flags.check ? { check: await checkAccessToken(target.baseURL, token, { timeoutMs: parseTimeoutMs(flags.timeout) }) } : {}),
     }
     await printData(data, flags.json ? 'json' : 'human')
   }
