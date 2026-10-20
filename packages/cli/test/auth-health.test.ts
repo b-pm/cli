@@ -2,6 +2,20 @@ import { describe, expect, it } from 'bun:test'
 import { checkAccessToken, parseTimeoutMs } from '../src/lib/auth-health.js'
 
 describe('checkAccessToken', () => {
+
+  it('checks a bearer-protected endpoint, not the public setup endpoint', async () => {
+    let requestedPath = ''
+    const result = await checkAccessToken('http://127.0.0.1:23373', 'stale-bearer', {
+      fetcher: async input => {
+        requestedPath = new URL(String(input)).pathname
+        return new Response('{}', { status: requestedPath === '/v1/app/setup' ? 200 : 401 })
+      },
+    })
+    expect(requestedPath).toBe('/v1/accounts')
+    expect(result).toEqual({ state: 'invalid', status: 401 })
+    expect(JSON.stringify(result)).not.toContain('stale-bearer')
+  })
+
   it('reports missing without making a request', async () => {
     let calls = 0
     const result = await checkAccessToken('http://127.0.0.1:23373', undefined, {
