@@ -52,10 +52,9 @@ describe('checkAccessToken', () => {
   })
 })
 
-
 describe('auth status credential/timeout regression', () => {
   it('never returns malformed bearer data from fetch errors', async () => {
-    const token = 'line-one\\nline-two-secret'
+    const token = 'line-one\nline-two-secret'
     const result = await checkAccessToken('http://127.0.0.1:23373', token, {
       fetcher: async () => {
         throw new TypeError(`Header authorization has invalid value: 'Bearer ${token}'`)
