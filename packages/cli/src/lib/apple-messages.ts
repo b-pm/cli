@@ -3,6 +3,7 @@ export type AppleMessagesPaginationState = 'ok' | 'broken' | 'insufficient-histo
 export type AppleMessagesDiagnostics = {
   detected: boolean
   connectivity: 'unverified'
+  accountProbe: 'ok' | 'error'
   discovery: 'accounts' | 'chats' | 'accounts+chats' | 'none'
   accountIDs: string[]
   sampledChats: number
@@ -43,7 +44,13 @@ export async function listAccountsIncludingNative(client: any): Promise<AnyRecor
 }
 
 export async function diagnoseAppleMessages(client: any): Promise<AppleMessagesDiagnostics> {
-  const accountRows = await listAccounts(client)
+  let accountRows: AnyRecord[] = []
+  let accountProbe: AppleMessagesDiagnostics['accountProbe'] = 'ok'
+  try {
+    accountRows = await listAccounts(client)
+  } catch {
+    accountProbe = 'error'
+  }
   const accountIDsFromAccounts = new Set(
     accountRows.filter(isAppleAccount).map(accountID).filter(Boolean),
   )
@@ -67,7 +74,11 @@ export async function diagnoseAppleMessages(client: any): Promise<AppleMessagesD
   const actions: string[] = []
 
   if (discovery === 'chats') {
-    actions.push('Apple Messages is active in chats but missing from the accounts API; do not treat accounts list as proof that iMessage is disconnected.')
+    if (accountProbe === 'ok') {
+      actions.push('Apple Messages chats exist but the native account is omitted from /v1/accounts; do not treat accounts list as proof of disconnection.')
+    } else {
+      actions.push('Could not query /v1/accounts. Chat evidence cannot establish whether the native account is listed; check authentication and target reachability.')
+    }
   }
   if (rawPhoneTitles > 0) {
     actions.push('Some Apple Messages chat titles are unresolved phone numbers; contact-name enrichment is incomplete in the API.')
@@ -76,7 +87,9 @@ export async function diagnoseAppleMessages(client: any): Promise<AppleMessagesD
     actions.push('Do not treat an empty older-history page as the end of the conversation; Apple Messages cursor pagination is currently returning an invalid empty page.')
   }
   if (discovery === 'none') {
-    actions.push('No Apple Messages account or chat was discoverable. This does not prove disconnection; verify the native account in Beeper Desktop on the target Mac.')
+    actions.push(accountProbe === 'error'
+      ? 'Could not query /v1/accounts and found no native chats. Check API authentication and target reachability before drawing a connectivity conclusion.'
+      : 'No Apple Messages account or chat was discoverable. This does not prove disconnection; verify the native account in Beeper Desktop on the target Mac.')
   } else {
     actions.push('Native account/chat discovery does not verify live iMessage connectivity or delivery. For a user-approved test, send to a known recipient with --wait.')
   }
@@ -84,6 +97,7 @@ export async function diagnoseAppleMessages(client: any): Promise<AppleMessagesD
   return {
     detected: discovery !== 'none',
     connectivity: 'unverified',
+    accountProbe,
     discovery,
     accountIDs,
     sampledChats: chats.length,
@@ -98,12 +112,10 @@ export async function diagnoseAppleMessages(client: any): Promise<AppleMessagesD
 }
 
 async function listAccounts(client: any): Promise<AnyRecord[]> {
-  try {
-    const response = await client.accounts.list()
-    return Array.isArray(response) ? response : (response?.items ?? [])
-  } catch {
-    return []
-  }
+  // Commands must surface authentication/network failures instead of quietly
+  // replacing the account list with a possibly stale chat-derived projection.
+  const response = await client.accounts.list()
+  return Array.isArray(response) ? response : (response?.items ?? [])
 }
 
 async function findAppleChats(client: any): Promise<AnyRecord[]> {
