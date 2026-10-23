@@ -166,4 +166,27 @@ describe('native iMessage account discovery', () => {
 
     await expect(resolveAccountID(client, 'iMessage')).resolves.toBe('imessage_deadbeef')
   })
+  it('surfaces accounts API errors instead of treating a failed request as an empty account list', async () => {
+    const client = {
+      accounts: { list: async () => { throw new Error('401 Invalid token') } },
+      chats: { search: () => pages([chat]), list: () => pages([]) },
+    }
+    await expect(listAccountsIncludingNative(client)).rejects.toThrow('401 Invalid token')
+  })
+
+  it('distinguishes an unavailable accounts API from a native account omission in diagnostics', async () => {
+    const client = {
+      accounts: { list: async () => { throw new Error('401 Invalid token') } },
+      chats: { search: () => pages([chat]), list: () => pages([]) },
+      messages: { list: async () => ({ items: [], hasMore: false, oldestCursor: null }) },
+    }
+    const result = await diagnoseAppleMessages(client)
+    expect(result.detected).toBe(true)
+    expect(result.connectivity).toBe('unverified')
+    expect(result.accountProbe).toBe('error')
+    expect(result.actions.join(' ')).toMatch(/Could not query \/v1\/accounts/)
+    expect(result.actions.join(' ')).not.toMatch(/native account is omitted/)
+    expect(JSON.stringify(result)).not.toContain('401 Invalid token')
+  })
+
 })
