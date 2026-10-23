@@ -1,7 +1,8 @@
 export type AppleMessagesPaginationState = 'ok' | 'broken' | 'insufficient-history' | 'unknown'
 
 export type AppleMessagesDiagnostics = {
-  connected: boolean
+  detected: boolean
+  connectivity: 'unverified'
   discovery: 'accounts' | 'chats' | 'accounts+chats' | 'none'
   accountIDs: string[]
   sampledChats: number
@@ -75,11 +76,14 @@ export async function diagnoseAppleMessages(client: any): Promise<AppleMessagesD
     actions.push('Do not treat an empty older-history page as the end of the conversation; Apple Messages cursor pagination is currently returning an invalid empty page.')
   }
   if (discovery === 'none') {
-    actions.push('No Apple Messages account or chat was discoverable. Confirm iMessage is connected in Beeper Desktop and that the selected target is the Mac running it.')
+    actions.push('No Apple Messages account or chat was discoverable. This does not prove disconnection; verify the native account in Beeper Desktop on the target Mac.')
+  } else {
+    actions.push('Native account/chat discovery does not verify live iMessage connectivity or delivery. For a user-approved test, send to a known recipient with --wait.')
   }
 
   return {
-    connected: discovery !== 'none',
+    detected: discovery !== 'none',
+    connectivity: 'unverified',
     discovery,
     accountIDs,
     sampledChats: chats.length,
@@ -152,7 +156,7 @@ async function checkAppleHistoryPagination(
   } catch (error) {
     return {
       state: 'unknown',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'Pagination probe failed; inspect the Desktop connection and API permissions.',
     }
   }
 }
