@@ -55,4 +55,30 @@ describe('resolveSendChatID', () => {
       },
     })
   })
+  it('refuses a direct chat returned for a different account', async () => {
+    const nativeChat = {
+      id: 'imsg##thread:existing',
+      accountID: 'imessage_deadbeef',
+      network: 'iMessage',
+      title: '+15551234567',
+    }
+    const client = {
+      accounts: { list: async () => ({ items: [] }) },
+      chats: {
+        search: () => pages([nativeChat]),
+        list: () => pages([]),
+        start: async () => ({
+          id: '!other:beeper.com',
+          accountID: 'whatsapp_other',
+          network: 'WhatsApp',
+        }),
+      },
+    }
+
+    await expect(resolveSendChatID(client, {
+      to: '+15551234567',
+      account: 'iMessage',
+    })).rejects.toThrow('different account')
+  })
+
 })
