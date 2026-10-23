@@ -43,7 +43,8 @@ describe('diagnoseAppleMessages', () => {
 
     const result = await diagnoseAppleMessages(client)
 
-    expect(result.connected).toBe(true)
+    expect(result.detected).toBe(true)
+    expect(result.connectivity).toBe('unverified')
     expect(result.discovery).toBe('chats')
     expect(result.accountIDs).toEqual(['imessage_deadbeef'])
     expect(result.contactResolution.rawPhoneTitles).toBe(1)
@@ -100,11 +101,32 @@ describe('diagnoseAppleMessages', () => {
 
     const result = await diagnoseAppleMessages(client)
 
-    expect(result.connected).toBe(false)
+    expect(result.detected).toBe(false)
+    expect(result.connectivity).toBe('unverified')
     expect(result.discovery).toBe('none')
     expect(result.historyPagination.state).toBe('unknown')
     expect(messageCalls).toBe(0)
   })
+
+  it('never treats a cached native chat as verified live connectivity', async () => {
+    const client = {
+      accounts: { list: async () => ({ items: [] }) },
+      chats: {
+        search: () => pages([chat]),
+        list: () => pages([]),
+      },
+      messages: { list: async () => { throw new Error('possibly stale cached chat') } },
+    }
+
+    const result = await diagnoseAppleMessages(client)
+    expect(result.detected).toBe(true)
+    expect(result.discovery).toBe('chats')
+    expect(result.connectivity).toBe('unverified')
+    expect(result.historyPagination.state).toBe('unknown')
+    expect(result.historyPagination.error).not.toContain('possibly stale cached chat')
+    expect(result.actions.join(' ')).toMatch(/does not verify live iMessage connectivity/)
+  })
+
 })
 
 describe('native iMessage account discovery', () => {
