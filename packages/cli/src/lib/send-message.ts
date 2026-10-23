@@ -24,6 +24,10 @@ export async function resolveSendChatID(client: any, options: {
     accountID,
     user: userQueryFromInput(options.to),
   })
+  // Explicit account selection must not silently send through another network.
+  if (chat?.accountID && String(chat.accountID) !== accountID) {
+    throw new Error('The resolved direct chat belongs to a different account; refusing to send.')
+  }
   const chatID = chat?.localChatID ?? chat?.id ?? chat?.chatID
   if (!chatID) throw new Error('Starting the direct chat did not return a chat ID')
   return String(chatID)
