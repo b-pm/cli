@@ -27,14 +27,13 @@ export default class Doctor extends BeeperCommand {
     }
 
     const readiness = checks.readiness as Awaited<ReturnType<typeof evaluateReadiness>>
-    let networkOK = true
     if (flags.network === 'imessage' && readiness.state === 'ready') {
-      const appleMessages = await diagnoseAppleMessages(await createClient(flags))
-      checks.appleMessages = appleMessages
-      networkOK = appleMessages.connected
+      checks.appleMessages = await diagnoseAppleMessages(await createClient(flags))
     }
 
-    const ok = readiness.state === 'ready' && networkOK
+    // Discovery is not proof of active iMessage transport; only target readiness
+    // affects the process exit code. Consumers can inspect checks.appleMessages.
+    const ok = readiness.state === 'ready'
     await printData({ ok, checks }, flags.json ? 'json' : 'human')
     if (!ok) this.exit(ExitCodes.NotReady)
   }
