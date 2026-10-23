@@ -165,7 +165,7 @@ async function checkAppleHistoryPagination(
     }
 
     return { state: 'ok', firstPageItems: firstItems.length, secondPageItems: secondItems.length }
-  } catch (error) {
+  } catch {
     return {
       state: 'unknown',
       error: 'Pagination probe failed; inspect the Desktop connection and API permissions.',
