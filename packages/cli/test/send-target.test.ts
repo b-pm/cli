@@ -78,7 +78,32 @@ describe('resolveSendChatID', () => {
     await expect(resolveSendChatID(client, {
       to: '+15551234567',
       account: 'iMessage',
-    })).rejects.toThrow('different account')
+    })).rejects.toThrow('refusing to send')
+  })
+
+  it('refuses direct-send routing when the backend omits the selected account identity', async () => {
+    const nativeChat = {
+      id: 'imsg##thread:existing',
+      accountID: 'imessage_deadbeef',
+      network: 'iMessage',
+      title: '+15551234567',
+    }
+    const client = {
+      accounts: { list: async () => ({ items: [] }) },
+      chats: {
+        search: () => pages([nativeChat]),
+        list: () => pages([]),
+        start: async () => ({
+          id: 'imsg##thread:missing-account',
+          network: 'iMessage',
+        }),
+      },
+    }
+
+    await expect(resolveSendChatID(client, {
+      to: '+15551234567',
+      account: 'iMessage',
+    })).rejects.toThrow('refusing to send')
   })
 
 })
