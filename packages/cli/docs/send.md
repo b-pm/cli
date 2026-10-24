@@ -17,7 +17,7 @@ beeper send unreact --to SEL --id MSG_ID --reaction KEY [--pick N]
 ## Notes
 
 - `--to` accepts a chat ID, local chat ID, exact title, or search text.
-- Pass `--account` to treat `--to` as a direct recipient identity (phone number, email, user ID, or name). The CLI asks Beeper to reuse or start that direct chat on the selected account. For iMessage, prefer an unambiguous E.164 phone number or email rather than a guessed name. The CLI rejects a returned chat whose account does not match the requested account; it does not independently verify the recipient's identity.
+- Pass `--account` to treat `--to` as a direct recipient identity (phone number, email, user ID, or name). The CLI asks Beeper to reuse or start that direct chat on the selected account. For iMessage, prefer an unambiguous E.164 phone number or email rather than a guessed name. The CLI refuses a returned chat if its account identity is missing or does not match the requested account; it does not independently verify the recipient's identity.
 - Prefer numeric local chat IDs from `beeper chats list` when scripting against
   the same target/profile. Use full Beeper/Matrix chat IDs for selectors that
   need to work across targets or profiles.
